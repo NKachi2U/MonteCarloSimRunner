@@ -1,21 +1,15 @@
 name: Build & Deploy
 
-# Runs on every push to main.
-# Frontend → GitHub Pages
-# Backend  → Render (triggered via deploy hook stored as a secret)
-
 on:
   push:
     branches: [main]
-  workflow_dispatch:   # allow manual trigger from the Actions tab
+  workflow_dispatch:
 
-# Required for the GitHub Pages deployment action
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Only one deployment at a time; cancel in-progress runs
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -27,6 +21,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Required: tells GitHub Pages which base URL to use
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
 
       - name: Set up Node 20
         uses: actions/setup-node@v4
@@ -43,11 +41,7 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          # Subdirectory path on GitHub Pages, e.g. /monte-carlo-claudecode-app/
-          # The trailing slash is required by Vite.
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
-          # Full URL of your Render backend, stored as a repo secret.
-          # Example: https://monte-carlo-api.onrender.com
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: Upload Pages artifact
@@ -67,11 +61,9 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  # ── Job 3: trigger Render to redeploy the backend ───────────────────────────
+  # ── Job 3: trigger Render backend redeploy ───────────────────────────────────
   deploy-backend:
     runs-on: ubuntu-latest
-    # Only runs if you have set the RENDER_DEPLOY_HOOK_URL secret.
-    # If the secret is absent the step is simply skipped (no failure).
     steps:
       - name: Trigger Render deploy hook
         if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
