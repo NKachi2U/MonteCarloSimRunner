@@ -66,9 +66,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render deploy hook
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" | grep -q "^2" \
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL not set — skipping backend redeploy."
+            exit 0
+          fi
+          curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_HOOK" | grep -q "^2" \
             && echo "Render deploy triggered." \
             || echo "Render deploy hook returned non-2xx — check the URL."
