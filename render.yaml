@@ -1,0 +1,16 @@
+# Render infrastructure-as-code configuration.
+# Connect your GitHub repo to Render and this file is picked up automatically.
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: monte-carlo-api
+    runtime: python
+    rootDir: backend          # Render changes into this directory before build/start
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free                # free tier — spins down after 15 min inactivity
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
