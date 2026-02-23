@@ -31,6 +31,7 @@ export default function App() {
   const [error,          setError]          = useState(null)
   const [results,        setResults]        = useState(null)
   const [initialCapital, setInitialCapital] = useState(1_000_000)
+  const [nSimulations,   setNSimulations]   = useState(10_000)
 
   async function handleUpload(file) {
     setLoading(true)
@@ -45,7 +46,7 @@ export default function App() {
       const analysisData = await runAnalysis({
         trades:          uploadData.trades,
         initial_capital: initialCapital,
-        n_simulations:   10_000,
+        n_simulations:   nSimulations,
         n_sample_paths:  500,
       })
 
@@ -64,7 +65,7 @@ export default function App() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="app-header">
         <h1>Monte Carlo Portfolio Analyser</h1>
-        <p>Upload a QuantConnect trade CSV · statistical analysis · 10 000 bootstrap simulations</p>
+        <p>Upload a QuantConnect trade CSV · statistical analysis · bootstrap Monte Carlo simulations</p>
       </header>
 
       {/* ── Controls ───────────────────────────────────────────────────────── */}
@@ -82,6 +83,34 @@ export default function App() {
             disabled={loading}
           />
         </div>
+
+        <div className="capital-input-card">
+          <label>Simulations</label>
+          <select
+            value={nSimulations}
+            onChange={e => setNSimulations(Number(e.target.value))}
+            disabled={loading}
+            style={{
+              width: '100%',
+              background: 'var(--bg-page)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '1rem',
+              padding: '8px 12px',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value={1_000}>1 000</option>
+            <option value={5_000}>5 000</option>
+            <option value={10_000}>10 000</option>
+            <option value={25_000}>25 000</option>
+            <option value={50_000}>50 000</option>
+            <option value={100_000}>100 000</option>
+          </select>
+        </div>
       </div>
 
       {/* ── Error ──────────────────────────────────────────────────────────── */}
@@ -96,7 +125,7 @@ export default function App() {
       {loading && (
         <div className="loading-wrapper">
           <div className="spinner" />
-          <p>Running 10 000 Monte Carlo simulations…</p>
+          <p>Running {nSimulations.toLocaleString()} Monte Carlo simulations…</p>
         </div>
       )}
 
@@ -151,7 +180,7 @@ export default function App() {
           {/* Monte Carlo Final Distribution — full width */}
           <div className="chart-card">
             <h3>
-              Monte Carlo Final Portfolio Distribution (10 000 Simulations,&nbsp;
+              Monte Carlo Final Portfolio Distribution ({nSimulations.toLocaleString()} Simulations,&nbsp;
               {m.total_trades} Trades Each)
             </h3>
             <MCDistributionChart
